@@ -1,90 +1,176 @@
-const Engine = Matter.Engine;
-const World = Matter.World;
-const Bodies = Matter.Bodies;
-const Body =    Matter.Body;
+var Engine = Matter.Engine,
+World = Matter.World,
+Events = Matter.Events,
+Bodies = Matter.Bodies;
 
-var engine, world;
-var drops = [];
-var maxDrops = 100;
-var umbrella;
-var rand;
-var Thunder, thunder1,thunder2,thunder3,thunder4;
-var wImg,walkingImg;
-var thunderCreatedFrame = 0;
+var particles
+var plinkos = [];
+var divisions=[];
+
+var divisionHeight=300;
+var score =0;
+var turn=0;
+
+var PLAY=1;
+var END=0;
+var gameState=PLAY;
+
+function setup() {
+createCanvas(800, 800);
+
+engine = Engine.create();
+world = engine.world;
+
+ground = new Ground(width/2,height,width,20);
+
+var abc=Math.round(random(1,10));
+abc=abc*50
 
 
-function preload(){
-   thunder1 = loadImage("1.png");
-   thunder2 = loadImage("2.png");
-   thunder3 = loadImage("3.png");
-   thunder4 = loadImage("4.png");
+
+ for (var k = 0; k <=width; k = k + 80) {
+   divisions.push(new Divisions(k, height-divisionHeight/2, 10, divisionHeight));
+ }
 
 
-   walkingImg = loadAnimation("walking_01.png","walking2 image/walking_02.png","walking_03.png","walking_04.png","walking_05.png","walking_06.png","walking_07.png","walking_08.png");
-}
-
-function setup(){
-   var canvas = createCanvas(500, 700);
+  for (var j = 75; j <=width; j=j+50) 
+  {
   
-
-   engine = Engine.create();
-   world = engine.world;
-
-   umbrella= new Umbrella(250,400);
-   
-   
-   
-   p5.prototype.animation=function(anim,x,y){
-        walkingImg.draw(250,400)
-   };
-
-  
-    
-   for(var i = 0; i < maxDrops; i++){
-      drops.push(new createDrops(random(0,424), random(0,424)));
-   }
-}
-
-function draw(){
-    background("black");
-   
-   Engine.update(engine);
-   
-  
-    rand = Math.round(random(1,4));
-    if(frameCount%80 === 0){
-        thunderCreatedFrame = frameCount;
-        Thunder = createSprite(random(10,370), random(10,30), 10, 10);
-        switch(rand){
-            case 1: Thunder.addImage(thunder1);
-            break;
-            case 2: Thunder.addImage(thunder2);
-            break; 
-            case 3: Thunder.addImage(thunder3);
-            break;
-            case 4: Thunder.addImage(thunder4);
-            break;
-            default: break;
-        }
-        Thunder.scale = 0.7;
-    }
-
-    if(thunderCreatedFrame + 10 === frameCount && Thunder){
-        Thunder.destroy();
-    }
-
-
-
-
-   for(var i = 0; i < maxDrops; i++){
-      drops[i].display();
-      drops[i].update();
+     plinkos.push(new Plinko(j,75));
   }
 
-  imageMode(CENTER);
-  walkingImg.draw(250,524);
+  for (var j = 50; j <=width-10; j=j+50) 
+  {
+  
+     plinkos.push(new Plinko(j,175));
+  }
+
+   for (var j = 75; j <=width; j=j+50) 
+  {
+  
+     plinkos.push(new Plinko(j,275));
+  }
+
+   for (var j = 50; j <=width-10; j=j+50) 
+  {
+  
+     plinkos.push(new Plinko(j,375));
+  }
+
+}
+
+
+
+function draw() {
+background("black");
+
+Engine.update(engine);
+
+
+ for (var i = 0; i < plinkos.length; i++) {
+   plinkos[i].display();
+ }
+
+
+
+ for (var k = 0; k < divisions.length; k++) {
+   divisions[k].display();
+ }
+
  
 
-   drawSprites();
-}   
+ textSize(30);
+ fill("cyan")
+ text("Score : "+score,20,35);
 
+ if(particles!=null)
+ {
+   particles.display();
+   if(particles.body.position.y>760)
+   {
+     if(particles.body.position.x<300)
+     {
+       score=score+500;
+    
+       if(turn===5)
+       {
+         gameState=END;
+       }
+     }
+    
+
+     if(particles.body.position.x>301&&particles.body.position.x<600)
+     {
+        score=score+100;
+      
+        if(turn===5)
+        {
+          gameState=END;
+        }
+     }
+
+     if(particles.body.position.x>601&&particles.body.position.x<900)
+     {
+       score=score+200;
+      
+       if(turn===5)
+       {
+         gameState=END;
+       }
+     }
+     particles=null;
+
+   }
+ }
+
+ if(gameState===END)
+ {
+   push();
+   strokeWeight(2);
+   stroke("blue")
+   textSize(50);
+   fill("cyan")
+   text("GAME OVER",200,250);
+   textSize(50);
+   strokeWeight(2);
+   stroke("blue");
+   fill("cyan");
+   text("Press Space Key to Restart",100,340)
+   pop();
+ }
+
+ fill("cyan")
+ textSize(32);
+ text("500",15,550);
+ text("500",95,550);
+ text("500",95+80,550);
+ text("100",95+160,550);
+ text("100",95+240,550);
+ text("100",95+240+80,550);
+ text("100",95+240+160,550);
+ text("200",95+320+160,550);
+ text("200",95+320+240,550);
+ text("200",95+320+320,550);
+
+
+}
+
+
+function mousePressed()
+{
+if(gameState!==END)
+{
+  turn=turn+1;
+  particles=new Particle(mouseX,10,10,10);
+}
+}
+
+function keyPressed()
+{
+if(keyCode===32)
+{
+  score=0;
+  turn=0;
+  gameState=PLAY;
+}
+}
